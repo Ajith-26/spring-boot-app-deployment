@@ -123,7 +123,7 @@ public class BankAppServiceImpl implements BankAppService {
 		double receiverAcBalance = receiverAccount.getAccountBalance();
 		if (senderAcBalance > amountToBeTransferred) {
 			repo.updateBalance(receiverAccountNo, receiverAcBalance + amountToBeTransferred);
-			repo.updateBalance(receiverAccountNo, senderAcBalance + amountToBeTransferred);
+			repo.updateBalance(senderAccountNo, senderAcBalance - amountToBeTransferred);
 			response = true;
 		}
 		return response;
