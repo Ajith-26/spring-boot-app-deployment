@@ -61,7 +61,7 @@ public class BankAppController {
 
 	@GetMapping("/name/{accountNo}")
 	ResponseEntity<?> getCustomerNameByAccountNo(@PathVariable("accountNo") long accountNo) {
-		ResponseEntity<?> response = new ResponseEntity<>(getErrorMessage, HttpStatus.FOUND);
+		ResponseEntity<?> response = new ResponseEntity<>(String.format(getErrorMessage, accountNo), HttpStatus.FOUND);
 		String customerName = service.getCustomerNameByAccountNo(accountNo);
 		if (customerName != null) {
 			response = ResponseEntity.ok("Customer name for the A/C no you have given: " + customerName);
@@ -71,7 +71,7 @@ public class BankAppController {
 
 	@GetMapping("/mobileNo/{accountNo}")
 	ResponseEntity<?> getCustomerMobileNoByAccountNo(@PathVariable("accountNo") long accountNo) {
-		ResponseEntity<?> response = new ResponseEntity<>(getErrorMessage, HttpStatus.FOUND);
+		ResponseEntity<?> response = new ResponseEntity<>(String.format(getErrorMessage, accountNo), HttpStatus.FOUND);
 		Long customerMobileNo = service.getCustomerMobileNoByAccountNot(accountNo);
 		if (customerMobileNo != null) {
 			response = ResponseEntity.ok("Customer mobile No for the A/C no you have given: " + customerMobileNo);
@@ -81,7 +81,7 @@ public class BankAppController {
 
 	@GetMapping("/details/{accountNo}")
 	ResponseEntity<?> getCustomerDetailsByAccountNo(@PathVariable("accountNo") long accountNo) {
-		ResponseEntity<?> response = new ResponseEntity<>(getErrorMessage, HttpStatus.FOUND);
+		ResponseEntity<?> response = new ResponseEntity<>(String.format(getErrorMessage, accountNo), HttpStatus.FOUND);
 		Account customerDetails = service.findByAccountNo(accountNo);
 		if (customerDetails != null) {
 			response = ResponseEntity.ok("Customer details for the A/C no you have given: " + customerDetails);
@@ -94,7 +94,7 @@ public class BankAppController {
 		ResponseEntity<?> response = null;
 		Double balance = service.checkBalance(accountNo);
 		if (balance == null) {
-			throw new AccountNotFoundException(getErrorMessage);
+			throw new AccountNotFoundException(String.format(getErrorMessage, accountNo));
 		} else {
 			response = ResponseEntity.ok("Account Balance: " + balance);
 		}
@@ -105,19 +105,21 @@ public class BankAppController {
 	ResponseEntity<?> depositAmount(@PathVariable("accountNo") Long accountNo,
 			@RequestBody LinkedHashMap<String, Object> vals) throws AccountNotFoundException {
 		Double balance = Double.parseDouble(vals.get("amountToBeDeposited").toString());
-		ResponseEntity<?> response = new ResponseEntity<>(getErrorMessage, HttpStatus.NOT_FOUND);
+		ResponseEntity<?> response = new ResponseEntity<>(
+				String.format(String.format(getErrorMessage, accountNo), accountNo), HttpStatus.NOT_FOUND);
 		Account account = service.depositAmount(accountNo, balance);
 		if (account != null) {
 			response = ResponseEntity.ok("Account Balance after deposit: " + account.getAccountBalance());
 		} else
-			throw new AccountNotFoundException(getErrorMessage);
+			throw new AccountNotFoundException(String.format(getErrorMessage, accountNo));
 		return response;
 	}
 
 	@PutMapping("/name/{accountNo}/{custName}")
 	ResponseEntity<?> editCustomerNameByAccountNo(@PathVariable("accountNo") long accountNo,
 			@PathVariable("custName") String name) {
-		ResponseEntity<?> response = new ResponseEntity<>(updateErrorMessage, HttpStatus.NOT_FOUND);
+		ResponseEntity<?> response = new ResponseEntity<>(String.format(updateErrorMessage, accountNo),
+				HttpStatus.NOT_FOUND);
 		Account account = service.editCustomerNameByAccountNo(accountNo, name);
 		if (account != null)
 			response = ResponseEntity.ok("Account updated with name: " + name);
@@ -127,7 +129,8 @@ public class BankAppController {
 	@PutMapping("/emailId/{accountNo}/{emailId}")
 	ResponseEntity<?> editCustomerEmailIdByAccountNo(@PathVariable("accountNo") long accountNo,
 			@PathVariable("emailId") String emailId) throws EmailIdAlreadyExistsException {
-		ResponseEntity<?> response = new ResponseEntity<>(updateErrorMessage, HttpStatus.NOT_FOUND);
+		ResponseEntity<?> response = new ResponseEntity<>(String.format(updateErrorMessage, accountNo),
+				HttpStatus.NOT_FOUND);
 		Account account = service.editCustomerNameByAccountNo(accountNo, emailId);
 		if (account != null)
 			response = ResponseEntity.ok("Account updated with emailId: " + emailId);
@@ -140,7 +143,8 @@ public class BankAppController {
 	@PutMapping("/mobileNo/{accountNo}/{mobileNo}")
 	ResponseEntity<?> editmobileNumberByAccountNo(@PathVariable("accountNo") long accountNo,
 			@PathVariable("mobileNo") long mobileNo) throws EmailIdAlreadyExistsException {
-		ResponseEntity<?> response = new ResponseEntity<>(updateErrorMessage, HttpStatus.NOT_FOUND);
+		ResponseEntity<?> response = new ResponseEntity<>(String.format(updateErrorMessage, accountNo),
+				HttpStatus.NOT_FOUND);
 		Account account = service.editMobileNumberByAccountNo(accountNo, mobileNo);
 		if (account != null)
 			response = ResponseEntity.ok("Account updated with mobileNo: " + mobileNo);
@@ -156,18 +160,19 @@ public class BankAppController {
 		if (senderAccountNo != receiverAccountNo) {
 			Account sender = service.findByAccountNo(senderAccountNo);
 			if (sender == null) {
-				throw new AccountNotFoundException("Sender " + getErrorMessage);
+				throw new AccountNotFoundException("Sender " + String.format(getErrorMessage, senderAccountNo));
 			}
 			Account receiver = service.findByAccountNo(receiverAccountNo);
 			if (receiver == null) {
-				throw new AccountNotFoundException("Receiver " + getErrorMessage);
+				throw new AccountNotFoundException("Receiver " + String.format(getErrorMessage, receiverAccountNo));
 			}
 			double amountToBeTransferred = Double.parseDouble(amount);
 			boolean transfer = service.transferAmount(senderAccountNo, receiverAccountNo, amountToBeTransferred);
 			if (transfer) {
-				response = ResponseEntity.ok("Successfully transferred Rs. " + amountToBeTransferred);
+				response = ResponseEntity.ok("Successfully transferred Rs. " + amountToBeTransferred + " from "
+						+ senderAccountNo + " to " + receiverAccountNo);
 			} else {
-				throw new InsufficientFundsException(transferErrorMessage);
+				throw new InsufficientFundsException(String.format(transferErrorMessage, senderAccountNo));
 			}
 		}
 		return response;
@@ -200,7 +205,7 @@ public class BankAppController {
 		ResponseEntity<?> response = null;
 		Account acc = service.findByAccountNo(accNo);
 		if (acc == null)
-			throw new AccountNotFoundException(getErrorMessage);
+			throw new AccountNotFoundException(String.format(getErrorMessage, accNo));
 		else {
 			service.deleteCustomerByAccNo(accNo);
 			response = ResponseEntity.ok("Deleted account with A/C no: " + acc.getAccountNo());
